@@ -1,0 +1,47 @@
+pipeline {
+    agent { label "robot" }
+
+    options {
+        buildDiscarder logRotator(numToKeepStr: "10")
+    }
+
+    parameters{
+        string defaultValue: 'simple.robot', name: 'suite'
+        string defaultValue: '7.1.1', name: 'rf_version'
+    }
+
+    stages {
+        stage("Update robot") {
+            steps {
+                sh script: "python3 -m pip install --break-system-packages robotframework==${params.rf_version}"
+            }
+        }
+
+        stage("Run Robot") {
+            steps {
+                sh returnStatus: true, script: "/home/jenkins/.local/bin/robot --version"
+                sh script: "/home/jenkins/.local/bin/robot --nostatusrc ${params.suite}", returnStatus: true
+            }
+            post {
+                cleanup {
+                    robot(outputPath: ".",
+                        passThreshold: 80.0,
+                        unstableThreshold: 70.0,
+                        disableArchiveOutput: true,
+                        logFileName: "log.html",
+                        reportFileName: "report.html")
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            influxDbPublisher(selectedTarget: "Influxdb 1.x")
+            influxDbPublisher(selectedTarget: "Influxdb 2.x")
+        }
+        cleanup {
+            cleanWs()
+        }
+    }
+}

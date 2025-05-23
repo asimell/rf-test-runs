@@ -1,0 +1,36 @@
+pipeline {
+    agent { label "robot" }
+
+    options {
+        buildDiscarder logRotator(numToKeepStr: "10")
+    }
+
+    stages {
+        stage("Run Robot") {
+            steps {
+                sh returnStatus: true, script: "robot --version"
+                sh script: "robot --nostatusrc simple.robot", returnStatus: true
+            }
+            post {
+                cleanup {
+                    robot(outputPath: ".",
+                        passThreshold: 80.0,
+                        unstableThreshold: 70.0,
+                        disableArchiveOutput: true,
+                        logFileName: "not_log_file_here.html",
+                        reportFileName: "not_report_file_here.html")
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            influxDbPublisher(selectedTarget: "Influxdb 1.x")
+            influxDbPublisher(selectedTarget: "Influxdb 2.x")
+        }
+        cleanup {
+            cleanWs()
+        }
+    }
+}
