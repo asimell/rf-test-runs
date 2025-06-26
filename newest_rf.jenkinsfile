@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage("Update robot") {
             steps {
-                sh script: "apt install python3-robotframework"
+                sh script: "python3 -m pip install --upgrade --user robotframework"
             }
         }
 
