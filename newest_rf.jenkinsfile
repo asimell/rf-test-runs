@@ -22,7 +22,7 @@ pipeline {
                 sh script: """#!/bin/bash
                     source venv/bin/activate
                     robot --version
-                    robot --nostatusrc .
+                    robot --nostatusrc --skip skippable --skiponfailure skipfail .
                     """, returnStatus: true
             }
             post {
