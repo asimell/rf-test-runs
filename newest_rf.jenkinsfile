@@ -8,15 +8,14 @@ pipeline {
     stages {
         stage("Update robot") {
             steps {
-                sh script: "python3 -m pip install --upgrade --pre robotframework"
-                sh script: "python3 -m pip install robotframework-pabot"
+                sh script: "apt install python3-robotframework"
             }
         }
 
         stage("Run Robot") {
             steps {
                 sh returnStatus: true, script: "robot --version"
-                sh script: "/home/jenkins/.local/bin/pabot --nostatusrc simple.robot loops.robot", returnStatus: true
+                sh script: "robot --nostatusrc .", returnStatus: true
             }
             post {
                 cleanup {
