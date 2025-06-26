@@ -8,14 +8,22 @@ pipeline {
     stages {
         stage("Update robot") {
             steps {
-                sh script: "python3 -m pip install --upgrade --user robotframework"
+                sh script: """#!/bin/bash
+                    python3 -m venv venv
+                    source venv/bin/activate
+                    pip install --upgrade --user robotframework
+                    deactivate
+                    """
             }
         }
 
         stage("Run Robot") {
             steps {
-                sh returnStatus: true, script: "robot --version"
-                sh script: "robot --nostatusrc .", returnStatus: true
+                sh script: """#!/bin/bash
+                    source venv/bin/activate
+                    robot --version
+                    robot --nostatusrc .
+                    """, returnStatus: true
             }
             post {
                 cleanup {
